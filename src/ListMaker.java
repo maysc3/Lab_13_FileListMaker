@@ -41,25 +41,40 @@ public class ListMaker {
                         isDirty = true;
                         break;
                     case "D":
-                        delete("You selected D");
-                        isDirty = true;
+                        if(myArrList.isEmpty()){
+                            System.out.println("You must add elements to the list before you can use the delete option");
+                        }
+                        else {
+                            delete("You selected D");
+                            isDirty = true;
+                        }
                         break;
                     case "I":
-                        insert("You selected I");
-                        isDirty = true;
+                        if(myArrList.isEmpty()){
+                            System.out.println("You must add elements to the list before you can use the insert option");
+                        }
+                        else {
+                            insert("You selected I");
+                            isDirty = true;
+                        }
                         break;
                     case "V":
                         ViewMyList("You selected V");
                         break;
                     case "M":
-                        move("You selected M");
+                        if(myArrList.size()<2){
+                            move("");
+                        }
+                        else {
+                            move("You selected M");
+                        }
                         isDirty = true;
                         break;
                     case "O":
                         myArrList = open("You selected O", SafeInput.getNonZeroLenString(in, "Enter the file name to open"));
                         break;
                     case "S":
-                        save("You selected S", SafeInput.getNonZeroLenString(in,"Enter the file name to save"));
+                        save("list saved", SafeInput.getNonZeroLenString(in,"Enter the file name to save"));
                         break;
                     case "C":
                         clear("You selected C");
@@ -69,8 +84,7 @@ public class ListMaker {
                         break;
                 }
             } catch (FileNotFoundException e) {
-                System.out.println("File not found");
-                e.printStackTrace();
+                System.out.println("Error file not found");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -105,25 +119,45 @@ public class ListMaker {
     }
     public static void move(String echo) {
         System.out.println(echo);
-        index = SafeInput.getRangedInt(in, "Select what element you want to move", 1, myArrList.size()) - 1;
-        int newPos = SafeInput.getRangedInt(in, "Select where you want to put this element", 1, myArrList.size()) - 1;
-        myArrList.add(newPos, myArrList.get(index));
-        myArrList.remove(index + 1);
+        if(myArrList.size()<2){
+            System.out.println("You must add two elements to the list to use the move option");
+            addItem("Try adding some elements");
+            System.out.println(echo);
+            addItem("add second element to then use the move option");
+            System.out.println(echo);
+            ViewMyList("Here is the current list");
+            System.out.println(echo);
+        }
+        index = SafeInput.getRangedInt(in, "Select what element you want to move", 1, myArrList.size())-1;
+        int newPos = SafeInput.getRangedInt(in, "Select where you want to put this element", 1, myArrList.size())-1;
+       if(newPos < index){
+            myArrList.add(newPos, myArrList.get(index));
+            myArrList.remove(index + 1); // when selected element is moved up in the list
+        }
+        if(newPos > index){
+            myArrList.add(newPos+1, myArrList.get(index));
+            myArrList.remove(index); // when selected element is moved down in the list
+        }
     }
-    public static ArrayList<String> open(String echo, String fileName) throws IOException {
-        System.out.println(echo);
-        if(isDirty) {
+    public static ArrayList<String> open(String echo, String fileName) throws FileNotFoundException {
+        try
+        {
+            System.out.println(echo);
+            if(isDirty) {
             System.out.println("This list has unsaved changes. Loading a new list now will overwrite the current list.");
             quickSave = SafeInput.getYNConfirm(in, "Do you want to save the current list? [Y] save list [N] Overwrite list");
-            if (quickSave) {
-                save("List saved", SafeInput.getNonZeroLenString(in, "Enter the file name to save"));
-                System.out.println(echo);
-            }
+                if (quickSave) {
+                    save("List saved", SafeInput.getNonZeroLenString(in, "Enter the file name to save"));
+                    System.out.println(echo);
+                }
+             }
+            Path filePath = Paths.get(fileName);
+            myArrList = new ArrayList<>(Files.readAllLines(filePath));
+            isDirty = false;
+            System.out.println("New list loaded successfully");
+        }catch (IOException e){
+            System.out.println("An error occurred while accessing the file. Please check the file path and try again.");
         }
-        System.out.println("New list Loaded");
-        Path filePath = Paths.get(fileName);
-        myArrList = new ArrayList<>(Files.readAllLines(filePath));
-        isDirty = false;
         return myArrList;
     }
     public static void save(String echo, String fileName) throws IOException {
